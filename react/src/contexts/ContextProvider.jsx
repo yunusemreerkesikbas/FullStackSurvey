@@ -2,8 +2,10 @@ import {createContext, useContext, useState} from "react";
 
 const StateContext = createContext({
     currentUser: {},
-    setCurrentUser: () => {},
+    setCurrentUser: () => {
+    },
     surveys: [],
+    questionTypes: [],
     userToken: null,
     setUserToken: () => {
     },
@@ -178,14 +180,19 @@ const tmpSurveys = [
 ]
 
 export const ContextProvider = ({children}) => {
-    const [currentUser, setCurrentUser] = useState({
-        name: 'Tom Cook',
-        email: 'tom@example.com',
-        imageUrl:
-            'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-    });
-    const [userToken, setUserToken] = useState('1234');
+    const [currentUser, setCurrentUser] = useState({});
+    const [userToken, _setUserToken] = useState(localStorage.getItem('token') || '');
     const [surveys, setSurveys] = useState(tmpSurveys);
+    const [questionTypes] = useState(['text','select','checkbox','radio','textarea'])
+    const setUserToken = (token) => {
+        if (token){
+            localStorage.setItem('token',token)
+        }
+        else{
+            localStorage.removeItem('token')
+        }
+        _setUserToken(token)
+    }
     return (
         <StateContext.Provider value={{
             currentUser,
@@ -193,6 +200,7 @@ export const ContextProvider = ({children}) => {
             userToken,
             setUserToken,
             surveys,
+            questionTypes,
 
         }}>
             {children}

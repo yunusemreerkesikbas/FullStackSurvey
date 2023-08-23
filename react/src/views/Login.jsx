@@ -1,4 +1,36 @@
+import {useState} from "react";
+import axiosClient from "../axios.js";
+import {Link} from "react-router-dom";
+import {useStateContext} from "../contexts/ContextProvider.jsx";
+
 export default function Login() {
+    const {setCurrentUser,setUserToken} = useStateContext();
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState({__html: ''})
+
+    const onSubmit = (e) => {
+        e.preventDefault();
+        setError({__html: ''})
+        axiosClient.post('/login', {
+            email,
+            password,
+        })
+            .then(({data}) => {
+                setCurrentUser(data.user)
+                setUserToken(data.token)
+            })
+            .catch((error) => {
+                if (error.response) {
+                    const finalErrors = Object.values(error.response.data.errors).reduce((acc, next) => [
+                        ...acc, ...next
+                    ], [])
+                    setError({__html: finalErrors.join('<br>')})
+                }
+
+                console.error(error);
+            })
+    }
     return (
         <>
 
@@ -6,7 +38,10 @@ export default function Login() {
                 Sign in to your account
             </h2>
             <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-                <form className="space-y-6" action="#" method="POST">
+                {error.__html && (
+                    <div className="bg-red-500 rounded py-2 px-3 text-white" dangerouslySetInnerHTML={error}>
+                    </div>)}
+                <form onSubmit={onSubmit} className="space-y-6" action="#" method="POST">
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">
                             Email address
@@ -17,7 +52,10 @@ export default function Login() {
                                 name="email"
                                 type="email"
                                 autoComplete="email"
+                                placeholder="Email address"
                                 required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                             />
                         </div>
@@ -28,11 +66,7 @@ export default function Login() {
                             <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">
                                 Password
                             </label>
-                            <div className="text-sm">
-                                <a href="#" className="font-semibold text-indigo-600 hover:text-indigo-500">
-                                    Forgot password?
-                                </a>
-                            </div>
+
                         </div>
                         <div className="mt-2">
                             <input
@@ -40,7 +74,10 @@ export default function Login() {
                                 name="password"
                                 type="password"
                                 autoComplete="current-password"
+                                placeholder="Password"
                                 required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                             />
                         </div>
@@ -57,10 +94,10 @@ export default function Login() {
                 </form>
 
                 <p className="mt-10 text-center text-sm text-gray-500">
-                    Not a member?{' '}
-                    <a href="#" className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">
-                        Start a 14 day free trial
-                    </a>
+
+                    <Link to="/signup" className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">
+                        Sign up for free
+                    </Link>
                 </p>
             </div>
         </>

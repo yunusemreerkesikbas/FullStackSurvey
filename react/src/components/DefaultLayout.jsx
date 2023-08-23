@@ -1,8 +1,9 @@
-import {Fragment} from 'react'
+import {Fragment, useEffect} from 'react'
 import {Disclosure, Menu, Transition} from '@headlessui/react'
 import {Bars3Icon, UserIcon, XMarkIcon} from '@heroicons/react/24/outline'
 import {Navigate, NavLink, Outlet} from "react-router-dom";
-import { useStateContext} from "../contexts/ContextProvider.jsx";
+import {useStateContext} from "../contexts/ContextProvider.jsx";
+import axiosClient from "../axios.js";
 
 
 /*const user = {
@@ -22,15 +23,24 @@ function classNames(...classes) {
 }
 
 export default function DefaultLayout() {
-    const {currentUser, userToken} = useStateContext()
+    const {currentUser, userToken, setCurrentUser, setUserToken} =
+        useStateContext();
     if (!userToken) {
-        return <Navigate to="/login" />
+        return <Navigate to="/login"/>
     }
     const isActive = true;
-    const logout = (e) => {
-        e.preventDefault();
-        console.log("logout")
-    }
+    const logout = (ev) => {
+        ev.preventDefault();
+        axiosClient.post("/logout").then((res) => {
+            setCurrentUser({});
+            setUserToken(null);
+        });
+    };
+    useEffect(() => {
+        axiosClient.get("/me").then(({data}) => {
+            setCurrentUser(data);
+        });
+    }, []);
     return (
         <>
 
@@ -80,7 +90,8 @@ export default function DefaultLayout() {
                                                         className="relative flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
                                                         <span className="absolute -inset-1.5"/>
                                                         <span className="sr-only">Open user menu</span>
-                                                        <UserIcon className="w-8 h-8 bg-black/25 p-2 rounded-full text-white"/>
+                                                        <UserIcon
+                                                            className="w-8 h-8 bg-black/25 p-2 rounded-full text-white"/>
                                                     </Menu.Button>
                                                 </div>
                                                 <Transition
